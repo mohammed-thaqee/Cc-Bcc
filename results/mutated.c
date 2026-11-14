@@ -1,9 +1,10 @@
+int printf(const char *, ...);
 int main()
 {
-  int p = 15;
-  int q = 5;
-  int result = p + q;
-  result = result + 2;
-  return result;
+  int a = 71;
+  int b = 20;
+  int result = a + b;
+  printf("%d\n", result);
+  return 0;
 }
 

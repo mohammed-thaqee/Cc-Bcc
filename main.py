@@ -15,7 +15,8 @@ from mutations.mutate import (
 input_files = [
     "inputs/sample.c",
     "inputs/sample2.c",
-    "inputs/sample3.c"
+    "inputs/sample3.c",
+    "inputs/sample4.c"
 ]
 
 # Randomly select an input program
