@@ -3,6 +3,7 @@ import subprocess
 import csv
 import os
 
+
 def test_compilers(source_file, input_file, mutation_name):
 
     compilers = ["gcc", "clang"]
@@ -20,6 +21,7 @@ def test_compilers(source_file, input_file, mutation_name):
         ]
 
         try:
+            # Compilation
             compilation = subprocess.run(
                 command,
                 capture_output=True,
@@ -28,6 +30,7 @@ def test_compilers(source_file, input_file, mutation_name):
 
             if compilation.returncode != 0:
                 print(f"{compiler.upper()}: Compilation failed")
+
                 results[compiler] = {
                     "status": "Failed",
                     "stdout": "",
@@ -38,24 +41,38 @@ def test_compilers(source_file, input_file, mutation_name):
 
             print(f"{compiler.upper()}: Compilation successful")
 
-            execution = subprocess.run(
-                [executable],
-                capture_output=True,
-                text=True
-            )
+            # Execution with timeout
+            try:
+                execution = subprocess.run(
+                    [executable],
+                    capture_output=True,
+                    text=True,
+                    timeout=5
+                )
 
-            results[compiler] = {
-                "status": "Success",
-                "stdout": execution.stdout,
-                "stderr": execution.stderr,
-                "exit_code": execution.returncode
-            }
+                results[compiler] = {
+                    "status": "Success",
+                    "stdout": execution.stdout,
+                    "stderr": execution.stderr,
+                    "exit_code": execution.returncode
+                }
 
-            print("Program output:", repr(execution.stdout))
-            print("Execution exit code:", execution.returncode)
+                print("Program output:", repr(execution.stdout))
+                print("Execution exit code:", execution.returncode)
+
+            except subprocess.TimeoutExpired:
+                print(f"{compiler.upper()}: Execution timed out!")
+
+                results[compiler] = {
+                    "status": "Timeout",
+                    "stdout": "",
+                    "stderr": "",
+                    "exit_code": "Timeout"
+                }
 
         except FileNotFoundError:
             print(f"{compiler.upper()} was not found.")
+
             results[compiler] = {
                 "status": "Compiler not found",
                 "stdout": "",
@@ -63,6 +80,7 @@ def test_compilers(source_file, input_file, mutation_name):
                 "exit_code": "N/A"
             }
 
+    # Compare GCC and Clang results
     gcc_result = results["gcc"]
     clang_result = results["clang"]
 
@@ -84,6 +102,7 @@ def test_compilers(source_file, input_file, mutation_name):
     print("\n--- COMPILER COMPARISON ---")
     print(comparison)
 
+    # Save results to CSV
     report_file = "results/comparison_report.csv"
     file_exists = os.path.isfile(report_file)
 
