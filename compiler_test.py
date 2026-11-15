@@ -2,7 +2,7 @@
 import subprocess
 import csv
 import os
-
+import time
 
 def is_abnormal_termination(returncode):
 
@@ -49,32 +49,68 @@ def test_compilers(source_file, input_file, mutation_name):
             ]
 
             try:
-                compilation = subprocess.run(
-                    command,
-                    capture_output=True,
-                    text=True
-                )
+                try:
+                    compilation_start = time.perf_counter()
 
-                if compilation.returncode != 0:
-                    print("Compilation failed!")
+                    compilation = subprocess.run(
+                        command,
+                        capture_output=True,
+                        text=True,
+                        timeout=10
+                    )
+
+                    compilation_time = time.perf_counter() - compilation_start
+
+                    print(f"Compilation time: {compilation_time:.6f} seconds")
+
+                except subprocess.TimeoutExpired:
+                    compilation_time = 10.0
+                    
+                    print(f"{compiler.upper()}: Compilation timed out!")
 
                     results[(compiler, optimization)] = {
-                        "status": "Failed",
+                        "status": "Compiler Timeout",
                         "stdout": "",
-                        "stderr": compilation.stderr,
-                        "exit_code": "N/A"
+                        "stderr": "",
+                        "exit_code": "Timeout",
+                        "compilation_time": compilation_time,
+                        "execution_time": "N/A"
                     }
+
+                    continue
+
+                if compilation.returncode != 0:
+
+                    if is_abnormal_termination(compilation.returncode):
+                        status = "Compiler Crash"
+                        print(f"{compiler.upper()}: Compiler crash detected!")
+
+                    else:
+                        status = "Compilation Failed"
+                        print(f"{compiler.upper()}: Compilation failed.")
+
+                    results[(compiler, optimization)] = {
+                        "status": status,
+                        "stdout": compilation.stdout,
+                        "stderr": compilation.stderr,
+                        "exit_code": compilation.returncode
+                    }
+
                     continue
 
                 print("Compilation successful")
 
                 try:
+                    execution_start = time.perf_counter()
                     execution = subprocess.run(
                         [executable],
                         capture_output=True,
                         text=True,
                         timeout=5
                     )
+                    execution_time = time.perf_counter() - execution_start
+
+                    print(f"Execution time: {execution_time:.6f} seconds")
 
                     if is_abnormal_termination(execution.returncode):
 
@@ -90,7 +126,9 @@ def test_compilers(source_file, input_file, mutation_name):
                         "status": status,
                         "stdout": execution.stdout,
                         "stderr": execution.stderr,
-                        "exit_code": execution.returncode
+                        "exit_code": execution.returncode,
+                        "compilation_time": compilation_time,
+                        "execution_time": execution_time
                     }
 
                     print("Program output:", repr(execution.stdout))
@@ -102,7 +140,9 @@ def test_compilers(source_file, input_file, mutation_name):
                         "status": "Timeout",
                         "stdout": "",
                         "stderr": "",
-                        "exit_code": "Timeout"
+                        "exit_code": "Timeout",
+                        "compilation_time": compilation_time,
+                        "execution_time": 5.0
                     }
 
             except FileNotFoundError:
@@ -112,7 +152,9 @@ def test_compilers(source_file, input_file, mutation_name):
                     "status": "Compiler not found",
                     "stdout": "",
                     "stderr": "",
-                    "exit_code": "N/A"
+                    "exit_code": "N/A",
+                    "compilation_time": compilation_time,
+                    "execution_time": "N/A"
                 }
 
     # Compare GCC and Clang results
@@ -161,7 +203,9 @@ def test_compilers(source_file, input_file, mutation_name):
                 "Status",
                 "Output",
                 "Exit Code",
-                "Comparison"
+                "Comparison",
+                "Compilation Time (seconds)",
+                "Execution Time (seconds)"
             ])
 
         for (compiler, optimization), result in results.items():
@@ -174,7 +218,9 @@ def test_compilers(source_file, input_file, mutation_name):
                 result["status"],
                 result["stdout"],
                 result["exit_code"],
-                comparison
+                comparison,
+                result["compilation_time"],
+                result["execution_time"]
             ])
 
     print(f"Results saved to {report_file}")
