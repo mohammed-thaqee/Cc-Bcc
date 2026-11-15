@@ -73,43 +73,73 @@ def replace_operator(ast):
 
 def duplicate_statement(ast):
 
-    statements = ast.ext[0].body.block_items
+    main_function = None
 
-    # Find assignment statements
+    # Find the main function definition
+    for node in ast.ext:
+        if isinstance(node, c_ast.FuncDef) and node.decl.name == "main":
+            main_function = node
+            break
+
+    if main_function is None:
+        print("Main function not found.")
+        return ast
+
+    statements = main_function.body.block_items
+
+    if not statements:
+        print("No statements available.")
+        return ast
+
     assignments = [
         stmt for stmt in statements
         if isinstance(stmt, c_ast.Assignment)
     ]
 
     if not assignments:
-        print("No assignment statements found.")
+        print("No assignment statements available.")
         return ast
 
     selected = random.choice(assignments)
-
-    # Duplicate the selected statement
-    duplicate = copy.deepcopy(selected)
-
     index = statements.index(selected)
-    statements.insert(index + 1, duplicate)
+
+    duplicated = copy.deepcopy(selected)
+
+    statements.insert(index + 1, duplicated)
 
     print("Statement duplicated.")
 
     return ast
 
 
+
 def delete_statement(ast):
 
-    statements = ast.ext[0].body.block_items
+    main_function = None
 
-    # Find assignment statements
+    # Find the main function definition
+    for node in ast.ext:
+        if isinstance(node, c_ast.FuncDef) and node.decl.name == "main":
+            main_function = node
+            break
+
+    if main_function is None:
+        print("Main function not found.")
+        return ast
+
+    statements = main_function.body.block_items
+
+    if not statements:
+        print("No statements available.")
+        return ast
+
     assignments = [
         stmt for stmt in statements
         if isinstance(stmt, c_ast.Assignment)
     ]
 
     if not assignments:
-        print("No assignment statements found.")
+        print("No assignment statements available.")
         return ast
 
     selected = random.choice(assignments)
