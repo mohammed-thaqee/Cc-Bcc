@@ -2,7 +2,7 @@
 import random
 from pycparser import c_parser, c_generator
 from compiler_test import test_compilers
-from mutations.mutate import build_symbol_table
+from mutations.mutate import build_symbol_table, replace_operator_type_aware
 
 from mutations.mutate import (
     replace_constant_type_aware,
@@ -23,9 +23,9 @@ input_files = [
 ]
 
 # Randomly select an input program
-selected_file = random.choice(input_files)
+# selected_file = random.choice(input_files)
 
-# selected_file = "inputs/datatype_test.c"
+selected_file = "inputs/sample2.c"
 
 print(f"Selected input: {selected_file}")
 
@@ -51,14 +51,13 @@ mutations = [
 # Randomly select a mutation
 # selected_mutation = random.choice(mutations)
 
-selected_mutation = "inputs/datatype_test.c"
+selected_mutation = replace_operator_type_aware
 
 
 print(f"Selected mutation: {selected_mutation.__name__}")
 
 # Apply mutation
-ast = selected_mutation(ast)
-ast = replace_constant_type_aware(ast, symbol_table)
+ast = selected_mutation(ast, symbol_table)
 
 
 # Generate modified C code

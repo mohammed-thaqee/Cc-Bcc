@@ -213,6 +213,158 @@ def build_symbol_table(ast):
     return symbol_table
 
 
+def get_expression_type(node, symbol_table):
+
+    if isinstance(node, c_ast.ID):
+        return symbol_table.get(node.name, "unknown")
+
+    elif isinstance(node, c_ast.Constant):
+
+        if node.type in ("int", "unsigned int"):
+            return "int"
+
+        elif node.type in ("float", "double"):
+            return "float"
+
+        elif node.type == "char":
+            return "char"
+
+    elif isinstance(node, c_ast.BinaryOp):
+
+        left_type = get_expression_type(node.left, symbol_table)
+        right_type = get_expression_type(node.right, symbol_table)
+
+        if "pointer" in left_type or "*" in left_type:
+            return left_type
+
+        if "double" in left_type or "double" in right_type:
+            return "double"
+
+        if "float" in left_type or "float" in right_type:
+            return "float"
+
+        if left_type == "unknown" or right_type == "unknown":
+            return "unknown"
+
+        return "int"
+
+    return "unknown"
+
+
+
+def replace_operator_type_aware(ast, symbol_table):
+
+    candidates = []
+
+    integer_types = [
+        "int", "unsigned int", "short int", "long int",
+        "char", "signed char", "unsigned char",
+        "short", "long", "unsigned", "signed"
+    ]
+
+    floating_types = ["float", "double", "long double"]
+
+    class OperatorVisitor(c_ast.NodeVisitor):
+
+        def visit_BinaryOp(self, node):
+
+            left_type = get_expression_type(node.left, symbol_table)
+            right_type = get_expression_type(node.right, symbol_table)
+
+            if left_type == "unknown" or right_type == "unknown":
+                self.generic_visit(node)
+                return
+
+            left_is_pointer = "*" in left_type
+            right_is_pointer = "*" in right_type
+
+            left_is_float = any(t in left_type for t in floating_types)
+            right_is_float = any(t in right_type for t in floating_types)
+
+            left_is_integer = left_type in integer_types
+            right_is_integer = right_type in integer_types
+
+            allowed = []
+
+            # Pointer arithmetic
+            if left_is_pointer and right_is_integer:
+                allowed = ["+", "-"]
+
+            elif right_is_pointer and left_is_integer:
+                allowed = ["+"]
+
+            # Arithmetic operations
+            elif left_is_integer and right_is_integer:
+                allowed = ["+", "-", "*", "/", "%"]
+
+            elif (
+                (left_is_integer or left_is_float)
+                and (right_is_integer or right_is_float)
+            ):
+                allowed = ["+", "-", "*", "/"]
+
+            # Relational and equality operations
+            if (
+                (left_is_integer or left_is_float)
+                and (right_is_integer or right_is_float)
+            ):
+                allowed.extend(["<", ">", "<=", ">=", "==", "!="])
+
+            # Logical operations for scalar operands
+            if (
+                (left_is_integer or left_is_float or left_is_pointer)
+                and (right_is_integer or right_is_float or right_is_pointer)
+            ):
+                allowed.extend(["&&", "||"])
+
+            # Bitwise operations for integer operands
+            if left_is_integer and right_is_integer:
+                allowed.extend(["&", "|", "^", "<<", ">>"])
+
+            alternatives = [
+                op for op in set(allowed)
+                if op != node.op
+            ]
+
+            if alternatives:
+                candidates.append((node, alternatives, left_type, right_type))
+
+            self.generic_visit(node)
+
+    visitor = OperatorVisitor()
+    visitor.visit(ast)
+
+    if not candidates:
+        print("No type-compatible operators found.")
+        return ast
+
+    node, alternatives, left_type, right_type = random.choice(candidates)
+
+    old_operator = node.op
+
+    # Avoid introducing a direct constant-zero divisor.
+    if node.op == "/":
+        if isinstance(node.right, c_ast.Constant):
+            if node.right.value in ("0", "0.0"):
+                alternatives = [
+                    op for op in alternatives if op != "%"
+                ]
+
+    if not alternatives:
+        print("No safe alternative operators found.")
+        return ast
+
+    node.op = random.choice(alternatives)
+
+    print(
+        f"Type-aware operator mutation: "
+        f"{left_type} {old_operator} {right_type} "
+        f"-> {node.op}"
+    )
+
+    return ast
+
+
 def replace_constant_type_aware(ast, symbol_table):
 
     replacements = []
