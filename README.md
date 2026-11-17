@@ -6,7 +6,6 @@
 ![Clang](https://img.shields.io/badge/Compiler-Clang-orange?logo=llvm)
 ![AST](https://img.shields.io/badge/Approach-AST--Based-purple)
 ![Status](https://img.shields.io/badge/Project-In%20Development-yellow)
-![License](https://img.shields.io/badge/License-To%20Be%20Determined-lightgrey)
 
 An AST-based compiler fuzzing prototype inspired by **GrayC: Greybox Fuzzing of Compilers and Analysers for C**.
 
