@@ -63,3 +63,11 @@ inputs/sample2.c,replace_operator_type_aware,clang,-O0,Success,,0,Match,0.158158
 inputs/sample2.c,replace_operator_type_aware,clang,-O1,Success,,0,Match,0.13432929999544285,0.0760426000051666
 inputs/sample2.c,replace_operator_type_aware,clang,-O2,Success,,0,Match,0.12199279999913415,0.08553150000079768
 inputs/sample2.c,replace_operator_type_aware,clang,-O3,Success,,0,Match,0.11501989999669604,0.07553049999842187
+inputs/sample2.c,replace_operator_type_aware,gcc,-O0,Success,,4294967294,Match,2.360114400000384,0.07877609999923152
+inputs/sample2.c,replace_operator_type_aware,gcc,-O1,Success,,4294967294,Match,0.1701558999993722,0.07267479999973148
+inputs/sample2.c,replace_operator_type_aware,gcc,-O2,Success,,4294967294,Match,0.1757716000010987,0.08346820000042499
+inputs/sample2.c,replace_operator_type_aware,gcc,-O3,Success,,4294967294,Match,0.16113029999905848,0.09205310000106692
+inputs/sample2.c,replace_operator_type_aware,clang,-O0,Success,,4294967294,Match,1.9383228000006056,0.06069960000058927
+inputs/sample2.c,replace_operator_type_aware,clang,-O1,Success,,4294967294,Match,0.262565099999847,0.0362580999990314
+inputs/sample2.c,replace_operator_type_aware,clang,-O2,Success,,4294967294,Match,0.140824000000066,0.1303754000000481
+inputs/sample2.c,replace_operator_type_aware,clang,-O3,Success,,4294967294,Match,0.12783190000118339,0.05047250000097847

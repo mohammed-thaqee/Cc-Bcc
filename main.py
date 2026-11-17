@@ -23,9 +23,9 @@ input_files = [
 ]
 
 # Randomly select an input program
-# selected_file = random.choice(input_files)
+selected_file = random.choice(input_files)
 
-selected_file = "inputs/sample2.c"
+# selected_file = "inputs/sample2.c"
 
 print(f"Selected input: {selected_file}")
 
@@ -49,9 +49,9 @@ mutations = [
 ]
 
 # Randomly select a mutation
-# selected_mutation = random.choice(mutations)
+selected_mutation = random.choice(mutations)
 
-selected_mutation = replace_operator_type_aware
+# selected_mutation = replace_operator_type_aware
 
 
 print(f"Selected mutation: {selected_mutation.__name__}")
